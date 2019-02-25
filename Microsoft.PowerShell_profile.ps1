@@ -143,11 +143,6 @@ function M365 {
             write-host '$SboSession = New-CsOnlineSession;Import-PSSession $SboSession'
         }
 
-        #Connect to Azure
-        Write-Host "Connecting to Azure"
-        Login-AzureRmAccount -credential $credential.creds
-        Select-AzureSub
-        
         #Import Exchange MFA Module
         $CreateEXOPSSession = (Get-ChildItem -Path $env:userprofile -Filter CreateExoPSSession.ps1 -Recurse -ErrorAction SilentlyContinue -Force | Select -Last 1).DirectoryName
         $ExoPowershellModule = "Microsoft.Exchange.Management.ExoPowershellModule.dll";
@@ -165,7 +160,13 @@ function M365 {
         Connect-EXOPSSession -UserPrincipalName $credential.userprincipalname
 
         #Connect to Power BI
-        #Connect to SharePoint Online
+        Write-Host "Connecting to Power BI"
+        Connect-PowerBIServiceAccount -Credential $credential.Creds
+
+        #Connect to Azure
+        Write-Host "Connecting to Azure"
+        Login-AzureRmAccount -credential $credential.creds
+        Select-AzureSub
     }
     END {}
 }
@@ -207,7 +208,7 @@ function install-m365 {
             Invoke-WebRequest -Uri $URL -OutFile $MMAFile | Out-Null
         }
             
-        # Install the Datto RMM Agent
+        # Install the Skype Module
         Start-Process $FileName /quiet -ErrorAction Stop -Wait | Out-Null
         
     }
@@ -229,4 +230,10 @@ function update-m365 {
     Update-Module -Name MicrosoftPowerBIMgmt.Reports -Confirm:$false
     Update-Module -Name MicrosoftPowerBIMgmt.Workspaces -Confirm:$false
     Update-Module -Name Microsoft.Online.SharePoint.PowerShell -Confirm:$false
+}
+
+# Chocolatey profile
+$ChocolateyProfile = "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
+if (Test-Path($ChocolateyProfile)) {
+    Import-Module "$ChocolateyProfile"
 }
