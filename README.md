@@ -21,4 +21,4 @@ Now you can just type **`m365`** to connect to the following services. Or use th
 * Skype **`sbo`**
 * Teams **`teams`**
 
-Run `noexo` to end all sessions before closing your PowerShell window.
+Run `NOM365` to end all sessions before closing your PowerShell window.
