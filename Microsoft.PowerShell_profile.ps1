@@ -113,7 +113,8 @@ function M365 {
         Get-InstalledModule -Name MicrosoftPowerBI*| % {import-module $_.name}
         import-module microsoftteams
         import-module msonline
-        Import-Module Microsoft.Online.SharePoint.PowerShell -DisableNameChecking        
+        Import-Module Microsoft.Online.SharePoint.PowerShell -DisableNameChecking 
+        $ErrorActionPreference= 'silentlycontinue'       
     }
     PROCESS {    
         #Connect to Azure AD
@@ -122,8 +123,8 @@ function M365 {
             Connect-AzureAD -Credential $credential.Creds
         }
         catch {
-            Write-Host 'Could not connect to Azure AD without MFA.' -foregroundcolor Red
-            Connect-AzureAD -UserPrincipalName $credential.userprincipalname
+            Write-Host 'Could not connect to Azure AD without MFA.' -foregroundcolor Magenta
+            Connect-AzureAD
         }
         
         #Connect to Teams
@@ -132,8 +133,8 @@ function M365 {
             Connect-MicrosoftTeams -Credential $credential.creds
         }
         catch {
-            Write-Host 'Could not connect to Teans without MFA.' -foregroundcolor Red
-            Connect-MicrosoftTeams -UserPrincipalName $credential.userprincipalname
+            Write-Host 'Could not connect to Teams without MFA.' -foregroundcolor Magenta
+            Connect-MicrosoftTeams
         }    
         #Connect to MSOL
         Write-Progress -Activity "Connecting to MSOL"
@@ -141,7 +142,7 @@ function M365 {
             Connect-MsolService -Credential $credential.creds
         }
         catch {
-            Write-Host 'Could not connect to MSOnline without MFA.' -foregroundcolor Red
+            Write-Host 'Could not connect to MSOnline without MFA.' -foregroundcolor Magenta
             Connect-MsolService -UserPrincipalName $credential.userprincipalname
         }
 
@@ -158,7 +159,7 @@ function M365 {
             Import-PSSession $SboSession    
         }
         Catch {
-            Write-Host 'Could not connect to Skype for Business Online without MFA.' -foregroundcolor Red
+            Write-Host 'Could not connect to Skype for Business Online without MFA.' -foregroundcolor Magenta
             $SboSession = New-CsOnlineSession;Import-PSSession $SboSession
         }
 
@@ -176,7 +177,7 @@ function M365 {
             Connect-IPPSSession -UserPrincipalName $credential.userprincipalname
         }
         Catch {
-            Write-Host 'Could not connect to Security and compliance center.' -foregroundcolor Red
+            Write-Host 'Could not connect to Security and compliance center.' -foregroundcolor Magenta
             Connect-IPPSSession -UserPrincipalName $credential.userprincipalname
         }
 
@@ -186,7 +187,7 @@ function M365 {
             Connect-EXOPSSession -UserPrincipalName $credential.userprincipalname
         }
         Catch {
-            Write-Host 'Could not connect to Exchange online without MFA.' -foregroundcolor Red
+            Write-Host 'Could not connect to Exchange online without MFA.' -foregroundcolor Magenta
             Connect-EXOPSSession -UserPrincipalName $credential.userprincipalname
         }
         #Connect to Power BI
@@ -195,8 +196,8 @@ function M365 {
             Connect-PowerBIServiceAccount -Credential $credential.Creds
         }
         Catch {
-            Write-Host 'Could not connect to Power BI.' -foregroundcolor Red
-            Connect-PowerBIServiceAccount -UserPrincipalName $credential.userprincipalname
+            Write-Host 'Could not connect to Power BI without MFA.' -foregroundcolor Magenta
+            Connect-PowerBIServiceAccount
         }
         #Connect to Azure
         Write-Progress -Activity "Connecting to Azure"
@@ -204,7 +205,7 @@ function M365 {
             Connect-AzAccount -credential $credential.creds
         }
         Catch {
-            Write-Host 'Could not connect to Azure without MFA.' -foregroundcolor Red
+            Write-Host 'Could not connect to Azure without MFA.' -foregroundcolor Magenta
             Connect-AzAccount -UserPrincipalName $credential.userprincipalname
         }
         Select-AzureSub
@@ -213,6 +214,7 @@ function M365 {
 }
 
 function NOM365 {Get-PSSession | remove-pssession}
+Set-Alias -Name NOEXO -Value NOM365
 
 function install-m365 {
     Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
