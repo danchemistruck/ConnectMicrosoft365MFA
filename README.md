@@ -1,5 +1,5 @@
 # Connect Microsoft 365 MFA
-#### Connect to all Microsoft services in PowerShell using MFA.
+#### Create a PowerShell profile that allows you to connect to all Microsoft services in PowerShell using MFA.
 ---
 Copy all files from the repo into the following path on your Windows 10 PC: 
 
