@@ -5,14 +5,14 @@ Copy all files from the repo into the following path on your Windows 10 PC: `%us
 
 Then open a new PowerShell window and run the following function to install all Microsoft 365 PowerShell modules:  `install-m365`
 
-Now you can just type `M365` to connect to the following services:
-* Azure
-* Azure AD
-* Azure Rights Management
-* Exchange Online
-* Microsoft Online (MSOL)
-* Power BI
-* Security and Compliance Center
-* SharePoint Online
-* Skype
-* Teams
+Now you can just type `M365` to connect to the following services. Or use the shortcuts below to connect to a single service
+* Azure `azure`
+* Azure AD `mso`
+* Azure Rights Management `m365`
+* Exchange Online `exo`
+* Microsoft Online (MSOL) `mso`
+* Power BI `m365  
+* Security and Compliance Center `m365`
+* SharePoint Online `m365`
+* Skype `sbo`
+* Teams `teams`
