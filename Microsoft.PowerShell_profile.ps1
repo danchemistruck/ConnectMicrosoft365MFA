@@ -4,10 +4,15 @@
 .DESCRIPTION
     Populates your Windows PowerShell profile with functions to connect to Microsoft online services.
 .EXAMPLE
+    PS C:\> install-m365
+    Installs all the Microsoft PowerShell modules for Microsoft 365 services.
+    Note: Exchange MFA modules are in the dependencies folder of the repo and must be copied into the following folder:  %userprofile%\Documents\WindowsPowerShell
+    https://github.com/danchemistruck/ConnectMicrosoft365MFA/tree/master/Dependencies
+.EXAMPLE
     PS C:\> m365
     Prompts for username and password, then connects to all Microsoft 365 services.
 .NOTES
-    Copyright (c) Dan Chemistruck. All rights reserved.
+    Copyright (c) Dan Chemistruck 2019. All rights reserved.
 
     MIT License
 
@@ -166,6 +171,66 @@ function M365 {
 }
 
 function NOEXO {Get-PSSession | remove-pssession}
+
+function install-m365 {
+    Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+
+    Install-Module -Name Az -AllowClobber -Force
+    Enable-AzureRMAlias
+    
+    Install-Module AADRM -force -Confirm:$false
+    Install-Module AzureAD -force -Confirm:$false
+    Install-Module MicrosoftTeams -force -Confirm:$false
+    Install-Module msonline -force -Confirm:$false
+    Install-Module -Name MicrosoftPowerBIMgmt -force -Confirm:$false
+    Install-Module -Name MicrosoftPowerBIMgmt.Data -force -Confirm:$false
+    Install-Module -Name MicrosoftPowerBIMgmt.Profile -force -Confirm:$false
+    Install-Module -Name MicrosoftPowerBIMgmt.Reports -force -Confirm:$false
+    Install-Module -Name MicrosoftPowerBIMgmt.Workspaces -force -Confirm:$false
+    Install-Module -Name Microsoft.Online.SharePoint.PowerShell -force -Confirm:$false
+    #Install Skype Online Module
+    Try{
+        $FileName = "SBOModule.exe"
+        $TempFolder = 'C:\Temp'
+        $MMAFile = $TempFolder + "\" + $FileName    
+        $URL = "https://download.microsoft.com/download/2/0/5/2050B39B-4DA5-48E0-B768-583533B42C3B/SkypeOnlinePowerShell.Exe"
+        
+        # Check if folder exists, if not, create it
+        if (!(Test-Path $TempFolder)){
+            New-Item $TempFolder -type Directory | Out-Null
+        }
+        # Change the location to the specified folder
+        Set-Location $TempFolder
+        
+        # Check if Microsoft Monitoring Agent file exists, if not, download it
+        if (!(Test-Path $FileName)){
+            Invoke-WebRequest -Uri $URL -OutFile $MMAFile | Out-Null
+        }
+            
+        # Install the Datto RMM Agent
+        Start-Process $FileName /quiet -ErrorAction Stop -Wait | Out-Null
+        
+    }
+    catch {
+        $server = $_.Exception.Message
+        $server | export-csv C:\temp\ErrorLog-SBOModule.csv -append -notypeinfo
+    }
+}
+
+function update-m365 {
+    Update-Module -Name Az -AllowClobber
+    Update-Module -Name AADRM -Confirm:$false
+    Update-Module -Name AzureAD -Confirm:$false
+    Update-Module -Name MicrosoftTeams -Confirm:$false
+    Update-Module -Name msonline -Confirm:$false
+    Update-Module -Name MicrosoftPowerBIMgmt -Confirm:$false
+    Update-Module -Name MicrosoftPowerBIMgmt.Data -Confirm:$false
+    Update-Module -Name MicrosoftPowerBIMgmt.Profile -Confirm:$false
+    Update-Module -Name MicrosoftPowerBIMgmt.Reports -Confirm:$false
+    Update-Module -Name MicrosoftPowerBIMgmt.Workspaces -Confirm:$false
+    Update-Module -Name Microsoft.Online.SharePoint.PowerShell -Confirm:$false
+}
+
 # Chocolatey profile
 $ChocolateyProfile = "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
 if (Test-Path($ChocolateyProfile)) {
