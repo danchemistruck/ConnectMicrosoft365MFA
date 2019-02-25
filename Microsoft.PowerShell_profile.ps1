@@ -212,7 +212,7 @@ function M365 {
     END {}
 }
 
-function NOEXO {Get-PSSession | remove-pssession}
+function NOM365 {Get-PSSession | remove-pssession}
 
 function install-m365 {
     Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
