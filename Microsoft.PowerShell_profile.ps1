@@ -34,6 +34,7 @@
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE.
 #>
+if(get-module az){Enable-AzureRmAlias -scope localmachine}
 function get-password {
     [String][ValidateScript( {$_ -match '^([\w-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([\w-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)$'})] $UPN = Read-Host -Prompt 'Userprincipalname'
     [SecureString] $password = Read-Host -Prompt 'Password' -AsSecureString
@@ -116,31 +117,49 @@ function M365 {
     }
     PROCESS {    
         #Connect to Azure AD
-        Write-Host "Connecting to Azure AD"
-        Connect-AzureAD -Credential $credential.Creds
+        Write-Progress -Activity "Connecting to Azure AD"
+        try {
+            Connect-AzureAD -Credential $credential.Creds
+        }
+        catch {
+            Write-Host 'Could not connect to Azure AD without MFA.' -foregroundcolor Red
+            Connect-AzureAD -UserPrincipalName $credential.userprincipalname
+        }
         
         #Connect to Teams
-        Write-Host "Connecting to Teams"
-        Connect-MicrosoftTeams -Credential $credential.creds
-        
+        Write-Progress -Activity "Connecting to Teams"
+        try {
+            Connect-MicrosoftTeams -Credential $credential.creds
+        }
+        catch {
+            Write-Host 'Could not connect to Teans without MFA.' -foregroundcolor Red
+            Connect-MicrosoftTeams -UserPrincipalName $credential.userprincipalname
+        }    
         #Connect to MSOL
-        Write-Host "Connecting to MSOL"
-        Connect-MsolService -Credential $credential.creds
+        Write-Progress -Activity "Connecting to MSOL"
+        try{
+            Connect-MsolService -Credential $credential.creds
+        }
+        catch {
+            Write-Host 'Could not connect to MSOnline without MFA.' -foregroundcolor Red
+            Connect-MsolService -UserPrincipalName $credential.userprincipalname
+        }
+
         $domainHost = $($(get-msoldomain |? {$_.name -like "*.onmicrosoft.com"})[0].name -split "\.")[0]
         
         #Connect to SPO
-        Write-Host "Connecting to SPO"
+        Write-Progress -Activity "Connecting to SPO"
         Connect-SPOService -Url https://$domainhost-admin.sharepoint.com -credential $credential.creds
         
         #Connect to Skype
-        Write-Host "Connecting to Skype"
+        Write-Progress -Activity "Connecting to Skype"
         try {
             $SboSession = New-CsOnlineSession -credential $credential.creds
             Import-PSSession $SboSession    
         }
         Catch {
-            Write-host 'Could not connect to Skype for Business Online. Try running:'
-            write-host '$SboSession = New-CsOnlineSession;Import-PSSession $SboSession'
+            Write-Host 'Could not connect to Skype for Business Online without MFA.' -foregroundcolor Red
+            $SboSession = New-CsOnlineSession;Import-PSSession $SboSession
         }
 
         #Import Exchange MFA Module
@@ -152,20 +171,42 @@ function M365 {
         . "$CreateEXOPSSession\CreateExoPSSession.ps1"
         
         #Connect to Security and compliance center
-        Write-Host "Connecting to Compliance Center"
-        Connect-IPPSSession -UserPrincipalName $credential.userprincipalname
-        
+        Write-Progress -Activity "Connecting to Security and Compliance Center"
+        try {
+            Connect-IPPSSession -UserPrincipalName $credential.userprincipalname
+        }
+        Catch {
+            Write-Host 'Could not connect to Security and compliance center.' -foregroundcolor Red
+            Connect-IPPSSession -UserPrincipalName $credential.userprincipalname
+        }
+
         #Connect to Exchange Online
-        Write-Host "Connecting to EXO"
-        Connect-EXOPSSession -UserPrincipalName $credential.userprincipalname
-
+        Write-Progress -Activity "Connecting to Exchange Online"
+        try {
+            Connect-EXOPSSession -UserPrincipalName $credential.userprincipalname
+        }
+        Catch {
+            Write-Host 'Could not connect to Exchange online without MFA.' -foregroundcolor Red
+            Connect-EXOPSSession -UserPrincipalName $credential.userprincipalname
+        }
         #Connect to Power BI
-        Write-Host "Connecting to Power BI"
-        Connect-PowerBIServiceAccount -Credential $credential.Creds
-
+        Write-Progress -Activity "Connecting to Power BI"
+        try {
+            Connect-PowerBIServiceAccount -Credential $credential.Creds
+        }
+        Catch {
+            Write-Host 'Could not connect to Power BI.' -foregroundcolor Red
+            Connect-PowerBIServiceAccount -UserPrincipalName $credential.userprincipalname
+        }
         #Connect to Azure
-        Write-Host "Connecting to Azure"
-        Login-AzureRmAccount -credential $credential.creds
+        Write-Progress -Activity "Connecting to Azure"
+        try{
+            Connect-AzAccount -credential $credential.creds
+        }
+        Catch {
+            Write-Host 'Could not connect to Azure without MFA.' -foregroundcolor Red
+            Connect-AzAccount -UserPrincipalName $credential.userprincipalname
+        }
         Select-AzureSub
     }
     END {}
@@ -230,10 +271,4 @@ function update-m365 {
     Update-Module -Name MicrosoftPowerBIMgmt.Reports -Confirm:$false
     Update-Module -Name MicrosoftPowerBIMgmt.Workspaces -Confirm:$false
     Update-Module -Name Microsoft.Online.SharePoint.PowerShell -Confirm:$false
-}
-
-# Chocolatey profile
-$ChocolateyProfile = "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
-if (Test-Path($ChocolateyProfile)) {
-    Import-Module "$ChocolateyProfile"
 }
