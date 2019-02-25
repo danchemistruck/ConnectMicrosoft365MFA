@@ -230,9 +230,3 @@ function update-m365 {
     Update-Module -Name MicrosoftPowerBIMgmt.Workspaces -Confirm:$false
     Update-Module -Name Microsoft.Online.SharePoint.PowerShell -Confirm:$false
 }
-
-# Chocolatey profile
-$ChocolateyProfile = "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
-if (Test-Path($ChocolateyProfile)) {
-    Import-Module "$ChocolateyProfile"
-}
