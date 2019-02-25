@@ -20,3 +20,5 @@ Now you can just type **`m365`** to connect to the following services. Or use th
 * SharePoint Online **`m365`**
 * Skype **`sbo`**
 * Teams **`teams`**
+
+Run `noexo` to end all sessions before closing your PowerShell window.
