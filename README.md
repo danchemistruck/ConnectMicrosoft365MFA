@@ -11,7 +11,7 @@ Now you can just type `M365` to connect to the following services. Or use the sh
 * Azure Rights Management `m365`
 * Exchange Online `exo`
 * Microsoft Online (MSOL) `mso`
-* Power BI `m365  
+* Power BI `m365`
 * Security and Compliance Center `m365`
 * SharePoint Online `m365`
 * Skype `sbo`
