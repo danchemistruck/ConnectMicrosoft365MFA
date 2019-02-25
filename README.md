@@ -1,11 +1,11 @@
 # Connect Microsoft 365 MFA
-#### Create a PowerShell profile that allows you to connect to all Microsoft services in PowerShell using MFA.
+#### Create a PowerShell profile that allows you to connect to Microsoft Online services in PowerShell using MFA.
 ---
 Copy all files from the repo into the following path on your Windows 10 PC: 
 
 `%userprofile%\Documents\WindowsPowerShell`
 
-Then open a new PowerShell window and run the following function to install all Microsoft 365 PowerShell modules:
+Then open a new PowerShell window and run the following function to install all listed Microsoft Online PowerShell modules:
 
 **`install-m365`**
 
