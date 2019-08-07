@@ -34,7 +34,7 @@
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE.
 #>
-if(get-module az){Enable-AzureRmAlias -scope localmachine}
+Enable-AzureRmAlias -scope localmachine
 function get-password {
     [String][ValidateScript( {$_ -match '^([\w-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([\w-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)$'})] $UPN = Read-Host -Prompt 'Userprincipalname'
     [SecureString] $password = Read-Host -Prompt 'Password' -AsSecureString
@@ -48,6 +48,7 @@ function get-password {
     return $Credentials
 }
 function select-azuresub {
+    if(get-module az){Enable-AzureRmAlias -scope localmachine}
     Get-AzureRmSubscription|Out-GridView -PassThru|Select-AzureRmSubscription
 }
 
@@ -55,13 +56,34 @@ function EXO {
     BEGIN {
         $credential = Get-Password
         import-module msonline
+        Start-Service WinRM
     }
     PROCESS {
+        
+        #Import Exchange MFA Module
+        $CreateEXOPSSession = (Get-ChildItem -Path $env:userprofile -Filter CreateExoPSSession.ps1 -Recurse -ErrorAction SilentlyContinue -Force | Select -Last 1).DirectoryName
+        $ExoPowershellModule = "Microsoft.Exchange.Management.ExoPowershellModule.dll";
+        $ExoModulePath = [System.IO.Path]::Combine($CreateEXOPSSession, $ExoPowershellModule);
+        import-module $ExoModulePath
+        $CreateEXOPSSession = (Get-ChildItem -Path $env:userprofile -Filter CreateExoPSSession.ps1 -Recurse -ErrorAction SilentlyContinue -Force | Select -Last 1).DirectoryName
+        . "$CreateEXOPSSession\CreateExoPSSession.ps1"
+
+                #Connect to Exchange Online
+                Write-Progress -Activity "Connecting to Exchange Online"
+                try {
+                    Connect-EXOPSSession -UserPrincipalName $credential.userprincipalname
+                }
+                Catch {
+                    Write-Host 'Could not connect to Exchange online without MFA.' -foregroundcolor Magenta
+                    Connect-EXOPSSession -UserPrincipalName $credential.userprincipalname
+                }
+    <#
         Connect-MsolService -credential $credential.creds
         $CreateEXOPSSession = (Get-ChildItem -Path $env:userprofile -Filter CreateExoPSSession.ps1 -Recurse -ErrorAction SilentlyContinue -Force | Select -Last 1).DirectoryName
         . "$CreateEXOPSSession\CreateExoPSSession.ps1"
         Connect-EXOPSSession -UserPrincipalName $credential.userprincipalname
-    }
+     #>                
+   }
     END {}
 }
 function MSO { 
@@ -82,18 +104,16 @@ function SBO {
     Connect-AzureAD -Credential $credential.Creds
 }
 function teams {
-    $credential = get-password
     import-module microsoftteams
-    Connect-MicrosoftTeams -credential $credential.creds
+    Connect-MicrosoftTeams
 }
 
 function azure {
     BEGIN {}
     PROCESS {
-        $credential = get-password
         import-module Az
         Enable-AzureRMAlias
-        Login-AzureRmAccount -credential $credential.creds
+        Login-AzureRmAccount
         select-azuresub
     }
     END {}
@@ -232,6 +252,7 @@ function install-m365 {
     Install-Module -Name MicrosoftPowerBIMgmt.Reports -force -Confirm:$false
     Install-Module -Name MicrosoftPowerBIMgmt.Workspaces -force -Confirm:$false
     Install-Module -Name Microsoft.Online.SharePoint.PowerShell -force -Confirm:$false
+    Install-Module -Name Microsoft.RDInfra.RDPowerShell -force -Confirm:$false
     #Install Skype Online Module
     Try{
         $FileName = "SBOModule.exe"
