@@ -242,6 +242,7 @@ function install-m365 {
     Install-Module -Name Az -AllowClobber -Force
     Enable-AzureRMAlias
     
+    #Install all Microsoft 365 modules.
     Install-Module AADRM -force -Confirm:$false
     Install-Module AzureAD -force -Confirm:$false
     Install-Module MicrosoftTeams -force -Confirm:$false
